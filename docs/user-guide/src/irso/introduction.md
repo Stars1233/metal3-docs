@@ -43,6 +43,48 @@ kubectl wait --for=condition=Available --timeout=60s \
   -n ironic-standalone-operator-system deployment/ironic-standalone-operator-controller-manager
 ```
 
+### Feature gates
+
+IrSO supports *feature gates* as a means for enabling (or disabling)
+experimental, less stable, or recently added features. The most up-to-date list
+of feature gates can be obtained from the built-in help of the controller
+manager. For example, if you have access to source code:
+
+```console
+$ make build
+$ ./bin/manager -h
+...
+  -feature-gates value
+        A set of key=value pairs that describe feature gates:
+        AllAlpha=true|false (ALPHA - default=false)
+        AllBeta=true|false (BETA - default=false)
+        HighAvailability=true|false (BETA - default=false)
+        Overrides=true|false (BETA - default=false)
+...
+```
+
+Feature gates can be enabled or disabled using the `-feature-gates` flag or the
+`FEATURE_GATES` environment variable. For example, you can update the
+controller deployment with
+
+```yaml
+spec:
+  template:
+    spec:
+      containers:
+      - name: manager
+        env:
+        - name: FEATURE_GATES
+          value: HighAvailability=true,Overrides=true
+```
+
+to enable container overrides and the HA architecture.
+
+**WARNING:** disabling a feature gate does not automatically disables the
+corresponding feature in existing Ironic resources. These resources will enter
+an error state and must be fixed manually. It is recommended to update all
+resources before disabling a previously enabled feature gate.
+
 ## API resources
 
 IrSO uses the [Ironic][api-ref] custom resource to manage Ironic itself and all
